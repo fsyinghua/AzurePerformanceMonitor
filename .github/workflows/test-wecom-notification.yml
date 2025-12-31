@@ -10,17 +10,31 @@ jobs:
       WECOM_WEBHOOK_URL: ${{ secrets.WECOM_WEBHOOK_URL }}
 
     steps:
-      - name: Test curl command directly
+      - name: Check network connectivity
         run: |
-          echo "Testing WeCom notification..."
+          echo "=== Testing network connectivity ==="
+          echo "Checking IP address..."
+          curl -s http://httpbin.org/ip
+          echo
+          
+          echo "Checking WeCom API endpoint accessibility..."
+          curl -v -X GET "https://qyapi.weixin.qq.com"
+          echo
+
+      - name: Test WeCom webhook directly
+        run: |
+          echo "=== Testing WeCom webhook ==="
           echo "Webhook URL: $WECOM_WEBHOOK_URL"
           
           # 使用最基本的测试消息
           TEST_MESSAGE='{"msgtype":"markdown","markdown":{"content":"📊 **测试通知**\n\n这是一条从 GitHub Actions 发送的测试通知，用于验证企业微信 Webhook 连接。"}}'
           
-          echo "Sending message..."
+          echo "Message content: $TEST_MESSAGE"
+          echo "Sending request..."
+          
+          # 使用详细模式发送请求
           curl -v -X POST "$WECOM_WEBHOOK_URL" \
                -H "Content-Type: application/json" \
-               -d "$TEST_MESSAGE" 
+               -d "$TEST_MESSAGE" 2>&1
           
-          echo "\nTest complete."
+          echo "\n=== Test complete ==="

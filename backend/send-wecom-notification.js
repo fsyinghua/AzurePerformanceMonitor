@@ -1,94 +1,106 @@
 #!/usr/bin/env node
 
-// 用于在 GitHub Actions 中发送企业微信通知的脚本
-const https = require('https');
+// 企业微信通知发送脚本 - 在 GitHub Actions 环境中使用
 
 // 获取环境变量
 const webhookUrl = process.env.WECOM_WEBHOOK_URL;
+const eventType = process.argv[2] || 'push';
 
+// 验证必需参数
 if (!webhookUrl) {
-  console.error('错误：未找到 WECOM_WEBHOOK_URL 环境变量');
-  process.exit(1);
+    console.error('❌ 缺少环境变量: WECOM_WEBHOOK_URL 未设置');
+    process.exit(1);
 }
 
-// 解析命令行参数
-const [, , actionType = 'push'] = process.argv;
+console.log(`🚀 开始发送企业微信通知...`);
+console.log(`📌 事件类型: ${eventType}`);
+console.log(`🔗 Webhook URL: ${webhookUrl}`);
 
 // 构建不同类型的通知消息
-let message;
-if (actionType === 'pull_request') {
-  const repo = process.env.GITHUB_REPOSITORY || '未知仓库';
-  const branch = process.env.GITHUB_REF_NAME || '未知分支';
-  const actor = process.env.GITHUB_ACTOR || '未知用户';
-  const prNumber = process.env.PR_NUMBER || '';
-  const prTitle = process.env.PR_TITLE || '';
-  
-  message = {
-    msgtype: 'markdown',
-    markdown: {
-      content: `📝 **Pull Request 通知**\n\n**仓库**: ${repo}\n**分支**: ${branch}\n**PR 号**: #${prNumber}\n**PR 标题**: ${prTitle}\n**提交者**: ${actor}\n\n新的 Pull Request 已创建！`
+function buildMessage() {
+    let content = '';
+    
+    if (eventType === 'pull_request') {
+        const prNumber = process.env.PR_NUMBER;
+        const prTitle = process.env.PR_TITLE || 'Pull Request';
+        const repo = process.env.GITHUB_REPOSITORY;
+        const actor = process.env.GITHUB_ACTOR;
+        const branch = process.env.GITHUB_REF_NAME;
+        
+        content = `📋 **Pull Request 通知**\n\n` +
+                 `📝 标题: ${prTitle}\n` +
+                 `#️⃣ 编号: #${prNumber}\n` +
+                 `📁 仓库: ${repo}\n` +
+                 `🌿 分支: ${branch}\n` +
+                 `👤 作者: ${actor}\n\n` +
+                 `🔗 [查看 Pull Request](https://github.com/${repo}/pull/${prNumber})`;
+    } else {
+        // 默认处理 push 事件
+        const repo = process.env.GITHUB_REPOSITORY;
+        const actor = process.env.GITHUB_ACTOR;
+        const branch = process.env.GITHUB_REF_NAME;
+        const sha = process.env.GITHUB_SHA;
+        
+        content = `📊 **代码推送通知**\n\n` +
+                 `📁 仓库: ${repo}\n` +
+                 `🌿 分支: ${branch}\n` +
+                 `👤 推送者: ${actor}\n` +
+                 `📄 提交 SHA: ${sha?.substring(0, 7)}\n\n` +
+                 `🔗 [查看提交](https://github.com/${repo}/commit/${sha})`;
     }
-  };
-} else {
-  // 默认是 push 通知
-  const repo = process.env.GITHUB_REPOSITORY || '未知仓库';
-  const branch = process.env.GITHUB_REF_NAME || '未知分支';
-  const actor = process.env.GITHUB_ACTOR || '未知用户';
-  const sha = process.env.GITHUB_SHA || '';
-  const shortSha = sha.substring(0, 7);
-  
-  message = {
-    msgtype: 'markdown',
-    markdown: {
-      content: `🚀 **代码推送通知**\n\n**仓库**: ${repo}\n**分支**: ${branch}\n**提交 ID**: \`${shortSha}\`\n**提交者**: ${actor}\n\n代码已成功推送并构建！`
-    }
-  };
+    
+    return {
+        msgtype: 'markdown',
+        markdown: {
+            content: content
+        }
+    };
 }
 
-// 转换为 JSON
+// 发送 HTTP 请求到企业微信 Webhook
+const https = require('https');
+const url = require('url');
+
+const message = buildMessage();
 const postData = JSON.stringify(message);
+const parsedUrl = url.parse(webhookUrl);
 
-// 解析 Webhook URL
-const url = new URL(webhookUrl);
-
-// 配置 HTTPS 请求
 const options = {
-  hostname: url.hostname,
-  path: url.pathname + url.search,
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Content-Length': postData.length
-  }
+    hostname: parsedUrl.hostname,
+    port: 443,
+    path: parsedUrl.path,
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+    }
 };
 
-console.log('准备发送企业微信通知...');
-console.log('Webhook URL:', webhookUrl.replace(/key=.*$/, 'key=***')); // 隐藏密钥
-console.log('消息内容:', postData);
+console.log(`📤 发送的消息: ${JSON.stringify(message, null, 2)}`);
+console.log(`📊 请求选项: ${JSON.stringify(options, null, 2)}`);
 
-// 发送请求
 const req = https.request(options, (res) => {
-  console.log(`响应状态码: ${res.statusCode}`);
-  console.log(`响应头: ${JSON.stringify(res.headers)}`);
-  
-  let responseData = '';
-  
-  res.on('data', (d) => {
-    responseData += d;
-  });
-  
-  res.on('end', () => {
-    console.log('响应体:', responseData);
-    console.log('企业微信通知发送完成');
-    process.exit(0);
-  });
+    console.log(`✅ 响应状态码: ${res.statusCode}`);
+    console.log(`📋 响应头: ${JSON.stringify(res.headers, null, 2)}`);
+    
+    let responseData = '';
+    
+    res.on('data', (chunk) => {
+        responseData += chunk;
+    });
+    
+    res.on('end', () => {
+        console.log(`📥 响应体: ${responseData}`);
+        console.log(`✅ 企业微信通知发送完成`);
+        process.exit(0);
+    });
 });
 
 req.on('error', (error) => {
-  console.error('发送企业微信通知时出错:', error);
-  process.exit(1);
+    console.error(`❌ 请求发送失败: ${error.message}`);
+    console.error(`❌ 错误详情: ${JSON.stringify(error, null, 2)}`);
+    process.exit(1);
 });
 
-// 写入数据
 req.write(postData);
 req.end();
