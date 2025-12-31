@@ -22,7 +22,10 @@ AzurePerformanceMonitor/
 ├── scripts/            # 部署和管理脚本
 ├── shared/             # 共享代码
 ├── tests/              # 测试文件
-└── README.md           # 项目说明
+├── README.md           # 项目说明
+├── 跨设备开发指南.md     # 跨设备开发和 GitHub 同步
+├── TRAE_AI_CONTEXT.md  # Trae AI 对话上下文
+└── 自动化思路.txt       # 开发思路记录
 ```
 
 ---
@@ -219,77 +222,23 @@ npm run build
 
 ---
 
-## 🔗 跨设备开发和 GitHub 同步
-
-### 当前设备保存项目
-
-1. 在项目根目录初始化 Git：
-   ```bash
-   cd c:\Codes\AzurePerformanceMonitor
-   git init
-   git config user.name "你的用户名"
-   git config user.email "你的邮箱"
-   git add .
-   git commit -m "完成 Azure Performance Monitor 开发，包含完整 FinOps 功能"
-   ```
-
-2. 在 GitHub 上创建新仓库
-
-3. 添加远程仓库并推送：
-   ```bash
-   git remote add origin https://github.com/[你的用户名]/AzurePerformanceMonitor.git
-   git push -u origin main
-   ```
-
-### 新设备克隆项目
-
-1. 克隆仓库：
-   ```bash
-   git clone https://github.com/[你的用户名]/AzurePerformanceMonitor.git
-   cd AzurePerformanceMonitor
-   ```
-
-2. 安装依赖并启动服务：
-   ```bash
-   # 安装后端依赖
-   cd backend
-   npm install
-   npm run dev
-
-   # 安装前端依赖
-   cd ../frontend
-   npm install
-   npm run dev
-   ```
-
-3. 在新设备的 Trae AI 中恢复上下文：
-   - 复制项目根目录中的 `TRAE_AI_CONTEXT.md` 文件内容
-   - 在新 Trae AI 对话中粘贴并提交
-
-### 更换设备后的同步
-
-当你从另一台电脑切换回原电脑时：
-
-```bash
-cd c:\Codes\AzurePerformanceMonitor
-# 更新本地仓库
- git pull origin main
-# 检查状态
- git status
- git log
-```
-
----
-
 ## 📝 待办事项
 
-- ✅ 所有主要功能已完成
-- ✅ FinOps 工具套件完整
-- ✅ 前端构建成功
-- ✅ 跨设备开发方案已实施
-- ⬜ 集成真实 Azure API
-- ⬜ 添加单元测试
-- ⬜ 生产环境部署配置
+### 已完成
+- ✅ 系统基础架构搭建
+- ✅ 虚拟机器管理功能
+- ✅ 成本分析和 FinOps 工具集成
+- ✅ 完整的前后端构建
+- ✅ 项目上传到 GitHub
+
+### 下一步需要做
+- 📝 **集成真实 Azure API**: 将模拟数据替换为真实的 Azure SDK 调用
+- 📝 **添加单元测试**: 为前后端关键功能编写测试用例
+- 📝 **生产环境部署配置**: 配置 Docker、CI/CD 等部署工具
+- 📝 **数据库集成**: 连接 PostgreSQL 和 InfluxDB 存储真实数据
+- 📝 **监控告警功能**: 实现性能阈值告警和通知
+- 📝 **资源变更审批流**: 添加资源操作的审批机制
+- 📝 **机器学习优化建议**: 集成 AI 模型提供更智能的成本优化建议
 
 ---
 
