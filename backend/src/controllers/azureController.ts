@@ -1,12 +1,12 @@
-import express from 'express';
+import { Router, Request, Response } from 'express';
 import { AzureService } from '../services/azureService';
 
-const router = express.Router();
+const router = Router();
 const azureService = new AzureService();
 
 export const azureController = router;
 
-router.get('/virtual-machines', async (req, res) => {
+router.get('/virtual-machines', async (req: Request, res: Response) => {
   try {
     // 返回模拟数据用于演示
     const mockVMs = [
@@ -50,7 +50,7 @@ router.get('/virtual-machines', async (req, res) => {
   }
 });
 
-router.get('/virtual-machines/:vmId/metrics', async (req, res) => {
+router.get('/virtual-machines/:vmId/metrics', async (req: Request, res: Response) => {
   try {
     const mockMetrics = {
       value: [
@@ -83,7 +83,7 @@ router.get('/virtual-machines/:vmId/metrics', async (req, res) => {
   }
 });
 
-router.get('/available-skus', async (req, res) => {
+router.get('/available-skus', async (req: Request, res: Response) => {
   try {
     const mockSkus = [
       { name: 'Standard_DS1_v2', tier: 'Standard', capacity: 1 },
@@ -105,7 +105,7 @@ router.get('/available-skus', async (req, res) => {
   }
 });
 
-router.get('/cost-analysis', async (req, res) => {
+router.get('/cost-analysis', async (req: Request, res: Response) => {
   try {
     const mockCostData = {
       id: 'cost-analysis-id',
@@ -134,7 +134,7 @@ router.get('/cost-analysis', async (req, res) => {
 });
 
 // 添加 FinOps 相关 API 路由
-router.get('/finops/optimization-recommendations', async (req, res) => {
+router.get('/finops/optimization-recommendations', async (req: Request, res: Response) => {
   try {
     const mockRecommendations = [
       {
@@ -184,7 +184,7 @@ router.get('/finops/optimization-recommendations', async (req, res) => {
   }
 });
 
-router.get('/finops/cost-forecast', async (req, res) => {
+router.get('/finops/cost-forecast', async (req: Request, res: Response) => {
   try {
     const mockForecast = {
       currentMonthCost: 550,
@@ -214,7 +214,7 @@ router.get('/finops/cost-forecast', async (req, res) => {
   }
 });
 
-router.get('/finops/savings-summary', async (req, res) => {
+router.get('/finops/savings-summary', async (req: Request, res: Response) => {
   try {
     const mockSavings = {
       totalSavings: 270,

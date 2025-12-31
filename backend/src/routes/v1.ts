@@ -1,4 +1,5 @@
 import express from 'express';
+import { Request, Response } from 'express';
 import { azureController } from './../controllers/azureController';
 import { monitoringController } from './../controllers/monitoringController';
 import { userController } from './../controllers/userController';
@@ -8,7 +9,7 @@ const router = express.Router();
 
 export const v1Routes = router;
 
-router.get('/health', (req, res) => {
+router.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'v1 API healthy', timestamp: new Date().toISOString() });
 });
 

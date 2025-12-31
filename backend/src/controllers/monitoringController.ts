@@ -1,10 +1,11 @@
 import express from 'express';
+import { Request, Response } from 'express';
 
 const router = express.Router();
 
 export const monitoringController = router;
 
-router.get('/metrics', async (req, res) => {
+router.get('/metrics', async (req: Request, res: Response) => {
   try {
     res.json({ message: 'Monitoring metrics endpoint', status: 'available' });
   } catch (error) {
@@ -12,7 +13,7 @@ router.get('/metrics', async (req, res) => {
   }
 });
 
-router.get('/alerts', async (req, res) => {
+router.get('/alerts', async (req: Request, res: Response) => {
   try {
     res.json({ message: 'Alerts endpoint', status: 'available' });
   } catch (error) {

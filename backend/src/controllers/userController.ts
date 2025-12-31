@@ -1,10 +1,11 @@
 import express from 'express';
+import { Request, Response } from 'express';
 
 const router = express.Router();
 
 export const userController = router;
 
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     res.json({ users: [], message: 'User management endpoint' });
   } catch (error) {
@@ -12,7 +13,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
     res.json({ token: 'dummy-token', user: { username } });

@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
+import { Request, Response } from 'express';
 import cors from 'cors';
 import { config } from './config/env';
 import { routes } from './routes';
@@ -16,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', routes);
 
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
