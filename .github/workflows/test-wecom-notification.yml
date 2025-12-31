@@ -1,0 +1,26 @@
+name: Test WeCom Notification
+
+on:
+  workflow_dispatch: # 手动触发
+
+jobs:
+  test-notification:
+    runs-on: ubuntu-latest
+    env:
+      WECOM_WEBHOOK_URL: ${{ secrets.WECOM_WEBHOOK_URL }}
+
+    steps:
+      - name: Test curl command directly
+        run: |
+          echo "Testing WeCom notification..."
+          echo "Webhook URL: $WECOM_WEBHOOK_URL"
+          
+          # 使用最基本的测试消息
+          TEST_MESSAGE='{"msgtype":"markdown","markdown":{"content":"📊 **测试通知**\n\n这是一条从 GitHub Actions 发送的测试通知，用于验证企业微信 Webhook 连接。"}}'
+          
+          echo "Sending message..."
+          curl -v -X POST "$WECOM_WEBHOOK_URL" \
+               -H "Content-Type: application/json" \
+               -d "$TEST_MESSAGE" 
+          
+          echo "\nTest complete."

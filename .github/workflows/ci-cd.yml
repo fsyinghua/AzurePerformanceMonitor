@@ -32,24 +32,32 @@ jobs:
 
       - name: Send push notification to WeCom
         if: github.event_name == 'push'
-        working-directory: backend
         env:
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_ACTOR: ${{ github.actor }}
         run: |
-          # 构建企业微信消息
-          MESSAGE="🚀 **代码推送通知**\n\n**仓库**: ${GITHUB_REPOSITORY}\n**分支**: ${GITHUB_REF_NAME}\n**提交 ID**: \`${GITHUB_SHA:0:7}\`\n**提交者**: ${GITHUB_ACTOR}\n\n代码已成功推送并构建！"
+          # 构建企业微信消息 - 使用 JSON 安全的格式
+          MESSAGE=$(cat <<'EOF'
+{ 
+  "msgtype": "markdown", 
+  "markdown": { 
+    "content": "🚀 **代码推送通知**\n\n**仓库**: ${GITHUB_REPOSITORY}\n**分支**: ${GITHUB_REF_NAME}\n**提交 ID**: \`${GITHUB_SHA:0:7}\`\n**提交者**: ${GITHUB_ACTOR}\n\n代码已成功推送并构建！"
+  }
+}
+EOF
+          )
           
-          # 使用 curl 发送通知
-          curl -X POST "$WECOM_WEBHOOK_URL" \
+          # 使用 curl 发送通知并显示详细调试信息
+          echo "Sending push notification to WeCom..."
+          echo "Message content: $MESSAGE"
+          curl -v -X POST "$WECOM_WEBHOOK_URL" \
                -H "Content-Type: application/json" \
-               -d "{ \"msgtype\": \"markdown\", \"markdown\": { \"content\": \"$MESSAGE\" } }"
+               -d "$MESSAGE"
 
       - name: Send pull request notification to WeCom
         if: github.event_name == 'pull_request'
-        working-directory: backend
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
@@ -58,9 +66,18 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           # 构建企业微信消息
-          MESSAGE="📝 **Pull Request 通知**\n\n**仓库**: ${GITHUB_REPOSITORY}\n**分支**: ${GITHUB_REF_NAME}\n**PR 号**: #${PR_NUMBER}\n**PR 标题**: ${PR_TITLE}\n**提交者**: ${GITHUB_ACTOR}\n\n新的 Pull Request 已创建！"
+          MESSAGE=$(cat <<'EOF'
+{ 
+  "msgtype": "markdown", 
+  "markdown": { 
+    "content": "📝 **Pull Request 通知**\n\n**仓库**: ${GITHUB_REPOSITORY}\n**分支**: ${GITHUB_REF_NAME}\n**PR 号**: #${PR_NUMBER}\n**PR 标题**: ${PR_TITLE}\n**提交者**: ${GITHUB_ACTOR}\n\n新的 Pull Request 已创建！"
+  }
+}
+EOF
+          )
           
           # 使用 curl 发送通知
-          curl -X POST "$WECOM_WEBHOOK_URL" \
+          echo "Sending pull request notification to WeCom..."
+          curl -v -X POST "$WECOM_WEBHOOK_URL" \
                -H "Content-Type: application/json" \
-               -d "{ \"msgtype\": \"markdown\", \"markdown\": { \"content\": \"$MESSAGE\" } }"
+               -d "$MESSAGE"
