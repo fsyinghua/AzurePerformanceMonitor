@@ -1,115 +1,100 @@
 import axios from 'axios';
 
-interface WeComNotificationConfig {
+// 企业微信配置接口
+export interface WeComConfig {
   webhookUrl: string;
-  agentId?: string;
-  corpId?: string;
-  corpSecret?: string;
 }
 
-interface GitCommitInfo {
+// Git 提交信息接口
+export interface GitCommitInfo {
+  commitId?: string;
+  author?: string;
   message: string;
-  author: string;
-  timestamp: string;
-  hash: string;
-  filesChanged: number;
-  insertions: number;
-  deletions: number;
+  repoUrl?: string;
 }
 
-class WeComNotificationService {
-  private config: WeComNotificationConfig;
+export class WeComNotificationService {
+  private config: WeComConfig;
 
-  constructor(config: WeComNotificationConfig) {
+  constructor(config: WeComConfig) {
     this.config = config;
-  }
-
-  /**
-   * 发送代码推送通知到企业微信
-   */
-  async sendCodePushNotification(
-    commitInfo: GitCommitInfo,
-    projectName: string = 'Azure Performance Monitor',
-    repositoryUrl: string = 'https://github.com/fsyinghua/AzurePerformanceMonitor.git'
-  ): Promise<void> {
-    const message = this.buildCodePushMessage(commitInfo, projectName, repositoryUrl);
-    await this.sendWeComMessage(message);
-  }
-
-  /**
-   * 构建代码推送通知消息
-   */
-  private buildCodePushMessage(
-    commitInfo: GitCommitInfo,
-    projectName: string,
-    repositoryUrl: string
-  ): any {
-    return {
-      msgtype: 'markdown',
-      markdown: {
-        content: `
-**🚀 ${projectName} 代码推送通知**
-
-> 仓库地址：[${repositoryUrl}](${repositoryUrl})
-
-**提交信息**：${commitInfo.message}
-**提交作者**：${commitInfo.author}
-**提交时间**：${commitInfo.timestamp}
-**提交哈希**：${commitInfo.hash}
-**变更文件数**：${commitInfo.filesChanged} 个
-**新增行数**：${commitInfo.insertions} 行
-**删除行数**：${commitInfo.deletions} 行
-
----
-
-⚠️ 请及时同步代码并进行测试验证！
-        `.trim()
-      }
-    };
-  }
-
-  /**
-   * 发送企业微信消息
-   */
-  private async sendWeComMessage(message: any): Promise<void> {
-    try {
-      const response = await axios.post(this.config.webhookUrl, message);
-      
-      if (response.data.errcode !== 0) {
-        throw new Error(`企业微信API调用失败: ${response.data.errmsg}`);
-      }
-      
-      console.log('企业微信通知发送成功');
-    } catch (error) {
-      console.error('发送企业微信通知失败:', error);
-      throw error;
+    
+    if (!this.config.webhookUrl) {
+      throw new Error('企业微信 Webhook URL 未配置');
     }
   }
 
   /**
-   * 发送自定义通知消息
+   * 发送测试通知
    */
-  async sendCustomNotification(
-    title: string,
-    content: string,
-    projectName: string = 'Azure Performance Monitor'
-  ): Promise<void> {
-    const message = {
+  async sendTestNotification(): Promise<void> {
+    const testContent = `🚀 **Azure Performance Monitor 测试通知**\n\n这是一条来自 Azure Performance Monitor 的测试通知，用于验证企业微信通知功能是否正常工作。`;
+    
+    await this.sendMarkdownMessage(testContent);
+  }
+
+  /**
+   * 发送自定义通知
+   * @param content 通知内容
+   */
+  async sendCustomNotification(content: string): Promise<void> {
+    await this.sendMarkdownMessage(content);
+  }
+
+  /**
+   * 发送代码推送通知
+   * @param commitInfo 提交信息
+   */
+  async sendCodePushNotification(commitInfo: GitCommitInfo): Promise<void> {
+    const content = this.buildCodePushMessage(commitInfo);
+    await this.sendMarkdownMessage(content);
+  }
+
+  /**
+   * 构建代码推送消息
+   * @param commitInfo 提交信息
+   */
+  private buildCodePushMessage(commitInfo: GitCommitInfo): string {
+    let message = `📝 **代码推送通知**\n\n`;
+    
+    if (commitInfo.author) {
+      message += `**提交作者**: ${commitInfo.author}\n`;
+    }
+    
+    if (commitInfo.commitId) {
+      message += `**提交 ID**: \`${commitInfo.commitId}\`\n`;
+    }
+    
+    if (commitInfo.message) {
+      message += `**提交信息**: ${commitInfo.message}\n`;
+    }
+    
+    if (commitInfo.repoUrl) {
+      message += `**仓库地址**: [查看仓库](${commitInfo.repoUrl})\n`;
+    }
+    
+    return message;
+  }
+
+  /**
+   * 发送 Markdown 消息到企业微信
+   * @param content Markdown 格式的消息内容
+   */
+  private async sendMarkdownMessage(content: string): Promise<void> {
+    const axios = (await import('axios')).default;
+    
+    const response = await axios.post(this.config.webhookUrl, {
       msgtype: 'markdown',
       markdown: {
-        content: `
-**${title}**
-
-> 项目：${projectName}
-
-${content}
-        `.trim()
+        content
       }
-    };
+    });
     
-    await this.sendWeComMessage(message);
+    // 添加类型断言来解决 unknown 类型问题
+    const result = response.data as { errcode: number; errmsg: string };
+    
+    if (result.errcode !== 0) {
+      throw new Error(`发送失败: ${result.errmsg} (错误码: ${result.errcode})`);
+    }
   }
 }
-
-export default WeComNotificationService;
-export type { GitCommitInfo, WeComNotificationConfig };

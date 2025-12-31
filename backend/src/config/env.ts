@@ -21,5 +21,11 @@ export const config = {
     clientId: process.env.AZURE_CLIENT_ID || '',
     clientSecret: process.env.AZURE_CLIENT_SECRET || '',
     subscriptionId: process.env.AZURE_SUBSCRIPTION_ID || ''
+  },
+  wecom: {
+    webhookUrl: process.env.WECOM_WEBHOOK_URL || '',
+    corpId: process.env.WECOM_CORP_ID || '',
+    agentId: process.env.WECOM_AGENT_ID || '',
+    corpSecret: process.env.WECOM_CORP_SECRET || ''
   }
 };

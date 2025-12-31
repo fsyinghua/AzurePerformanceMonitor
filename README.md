@@ -1,12 +1,20 @@
 # Azure Performance Monitor - Azure云资源自动化管理平台
 
-一个功能完整的前后端分离 Azure 云资源自动化管理平台，用于监控、管理和优化 Azure 云资源，集成了完整的 FinOps (云财务管理) 工具。
+一个功能完整的前后端分离 Azure 云资源自动化管理平台，用于监控、管理和优化 Azure 云资源，集成了完整的 FinOps (云财务管理) 工具和企业微信通知系统。
 
 ---
 
 ## 📊 项目概览
 
 Azure Performance Monitor 是一个专为 Azure 云环境设计的综合管理平台，提供资源监控、性能分析、成本优化和自动化管理等功能。通过可视化仪表板和智能分析，帮助用户全面掌控 Azure 云资源的使用情况和成本。
+
+核心特色：
+- ✅ 完整的前后端分离架构
+- ✅ 集成企业微信自动通知系统
+- ✅ GitHub Actions CI/CD 自动化
+- ✅ 完整的 FinOps 工具集
+- ✅ 多设备开发同步支持
+- ✅ 开源免费
 
 ---
 
@@ -48,6 +56,10 @@ AzurePerformanceMonitor/
 - PostgreSQL
 - InfluxDB
 
+### 自动化
+- GitHub Actions CI/CD
+- 企业微信通知集成
+
 ---
 
 ## 🚀 核心功能
@@ -83,10 +95,13 @@ AzurePerformanceMonitor/
 - 资源利用率统计
 
 ### 6. 通知系统
-- 企业微信集成
-- 代码推送自动通知
-- 自定义消息模板
-- 实时状态更新
+- ✅ 企业微信集成
+- ✅ 代码推送自动通知
+- ✅ Pull Request 自动通知
+- ✅ CI/CD 构建状态通知
+- ✅ 自定义消息模板
+- ✅ 实时状态更新
+- ✅ GitHub Actions 集成
 
 ---
 
@@ -104,7 +119,8 @@ AzurePerformanceMonitor/
 ```bash
 cd backend
 npm install
-# 使用模拟数据，无需 Azure 配置
+# 配置企业微信通知 (可选)
+# 复制 .env.example 到 .env 并设置 WECOM_WEBHOOK_URL
 npm run dev
 ```
 
@@ -157,7 +173,21 @@ npm run dev
 
 ### 📧 企业微信通知
 
-企业微信通知功能用于在代码推送或系统重要事件时自动发送通知到企业微信群。详细配置和使用方法请参考：
+企业微信通知功能用于在代码推送、Pull Request 或系统重要事件时自动发送通知到企业微信群。
+
+#### 主要特性
+- 代码推送时自动发送通知
+- Pull Request 创建时自动发送通知
+- CI/CD 构建状态通知
+- 自定义通知支持
+- GitHub Actions 自动化集成
+
+#### 配置方法
+1. 获取企业微信机器人 Webhook URL
+2. 在 `.env` 文件中配置 `WECOM_WEBHOOK_URL`
+3. 在 GitHub Secrets 中添加 `WECOM_WEBHOOK_URL` 用于 CI/CD
+
+详细配置和使用方法请参考：
 - `docs/企业微信通知使用指南.md`
 
 ---
@@ -168,27 +198,46 @@ npm run dev
 
 #### 1. 健康检查
 ```bash
-curl http://localhost:5173/api/v1/health
+curl http://localhost:3000/api/v1/health
 ```
 
 #### 2. 虚拟机器列表
 ```bash
-curl http://localhost:5173/api/v1/azure/virtual-machines
+curl http://localhost:3000/api/v1/azure/virtual-machines
 ```
 
 #### 3. FinOps 成本预测
 ```bash
-curl http://localhost:5173/api/v1/azure/finops/cost-forecast
+curl http://localhost:3000/api/v1/azure/finops/cost-forecast
 ```
 
 #### 4. FinOps 优化建议
 ```bash
-curl http://localhost:5173/api/v1/azure/finops/optimization-recommendations
+curl http://localhost:3000/api/v1/azure/finops/optimization-recommendations
 ```
 
 #### 5. FinOps 节省摘要
 ```bash
-curl http://localhost:5173/api/v1/azure/finops/savings-summary
+curl http://localhost:3000/api/v1/azure/finops/savings-summary
+```
+
+#### 6. 企业微信测试通知
+```bash
+curl http://localhost:3000/api/v1/wecom/test
+```
+
+#### 7. 发送自定义企业微信通知
+```bash
+curl -X POST http://localhost:3000/api/v1/wecom/send \
+  -H "Content-Type: application/json" \
+  -d '{"content": "这是一条自定义通知", "type": "text"}'
+```
+
+#### 8. 发送代码推送通知
+```bash
+curl -X POST http://localhost:3000/api/v1/wecom/code-push \
+  -H "Content-Type: application/json" \
+  -d '{"commitId": "abc123", "author": "John Doe", "message": "修复了一个关键bug", "repoUrl": "https://github.com/your-repo"}'
 ```
 
 ---
@@ -213,6 +262,13 @@ cd backend
 npm run build
 ```
 
+### CI/CD 自动化
+
+项目已集成 GitHub Actions 自动化构建和通知：
+- 代码推送到 `main`/`master`/`develop` 分支时自动构建
+- 构建完成后自动发送通知到企业微信
+- Pull Request 创建时触发构建和通知
+
 ---
 
 ## 📋 项目路线图
@@ -220,27 +276,12 @@ npm run build
 ### 已完成
 - ✅ 系统基础架构
 - ✅ 虚拟机器管理
-- ✅ 成本分析
-- ✅ FinOps 工具集成
-- ✅ 模拟数据支持
-
-### 计划中
-- 📝 真实 Azure 连接
-- 📝 数据库集成
-- 📝 监控告警
-- 📝 资源变更审批
-- 📝 机器学习优化建议
-
----
-
-## 📝 待办事项
-
-### 已完成
-- ✅ 系统基础架构搭建
-- ✅ 虚拟机器管理功能
 - ✅ 成本分析和 FinOps 工具集成
 - ✅ 完整的前后端构建
 - ✅ 项目上传到 GitHub
+- ✅ 企业微信通知集成: 完成企业微信通知功能的全面集成和测试
+- ✅ GitHub Actions CI/CD 自动化
+- ✅ 多设备开发同步文档
 
 ### 下一步需要做
 - 📝 **集成真实 Azure API**: 将模拟数据替换为真实的 Azure SDK 调用
@@ -250,7 +291,6 @@ npm run build
 - 📝 **监控告警功能**: 实现性能阈值告警和通知
 - 📝 **资源变更审批流**: 添加资源操作的审批机制
 - 📝 **机器学习优化建议**: 集成 AI 模型提供更智能的成本优化建议
-- 📝 **企业微信通知集成**: 完成企业微信通知功能的全面集成和测试
 
 ---
 
